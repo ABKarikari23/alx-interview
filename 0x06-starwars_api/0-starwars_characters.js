@@ -1,28 +1,51 @@
 #!/usr/bin/node
-/* Prints all Casts of Star Wars movie
-Read the README.md file for more info
-*/
 
 const request = require('request');
-const starWarsAPI = 'https://swapi-api.alx-tools.com/api/';
-const endPoint = 'films/';
-const movieID = process.argv[2].toString();
+const movieId = process.argv[2];
 
-request(starWarsAPI + endPoint + movieID, function (error, _, body) {
-  if (error) console.error(error);
-  const objects = JSON.parse(body);
-  const casts = objects.characters;
-  Printresult(casts);
-});
+function getMovieCharacters(movieId) {
+  const filmsUrl = 'https://swapi-api.alx-tools.com/api/films';
 
-/* reculsively and synchronously request for each character
-and prints out the casts */
-function Printresult (casts, counter = 0) {
-  request(casts[counter], function (error, _, body) {
-    if (error) console.error(error);
-    console.log(JSON.parse(body).name);
-    if (++counter < casts.length) {
-      Printresult(casts, counter++);
+  request.get(filmsUrl, (error, response, body) => {
+    if (response.statusCode === 200) {
+      const filmsData = JSON.parse(body);
+      const movieData = filmsData.results.find((film) => film.episode_id.toString() === movieId);
+
+      if (movieData) {
+        const charactersUrls = movieData.characters;
+        const characters = [];
+
+        for (const charUrl of charactersUrls) {
+          request.get(charUrl, (error, response, body) => {
+            if (response.statusCode === 200) {
+              const characterData = JSON.parse(body);
+              characters.push(characterData.name);
+              if (characters.length === charactersUrls.length) {
+                printCharacters(characters, movieData.title);
+              }
+            } else {
+              console.log(`Error: ${response.statusCode}`);
+            }
+          });
+        }
+      } else {
+        console.log(`Movie ID ${movieId} not found.`);
+      }
+    } else {
+      console.log(`Error: ${response.statusCode}`);
     }
   });
+}
+
+function printCharacters(characters, movieTitle) {
+  console.log(`Characters in ${movieTitle}:`);
+  for (const character of characters) {
+    console.log(character);
+  }
+}
+
+if (movieId) {
+  getMovieCharacters(movieId);
+} else {
+  console.log('Usage: node 0-starwars_characters.js [Movie ID]');
 }
