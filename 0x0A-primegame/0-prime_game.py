@@ -1,45 +1,42 @@
 #!/usr/bin/python3
-"""
-Prime Game
-"""
+"""0. Prime Game - Maria and Ben are playing a game"""
+
 
 def isWinner(x, nums):
+    """x - rounds
+    nums - numbers list
     """
-    Given a set of consecutive integers starting from 1 up to and including n,
-    hey take turns choosing a prime number from the set and removing that number
-    and its multiples from the set. The player that cannot make a move loses the game.
-    """
-    def is_prime(n):
-        if n <= 1:
-            return False
-        for i in range(2, int(n**0.5) + 1):
-            if n % i == 0:
-                return False
-        return True
+    if x <= 0 or nums is None:
+        return None
+    if x != len(nums):
+        return None
 
-    def get_prime_count(n):
-        count = 0
-        for i in range(2, n + 1):
-            if is_prime(i):
-                count += 1
-        return count
-
-    maria = 0
     ben = 0
+    maria = 0
 
-    for num in nums:
-        prime_count = get_prime_count(num)
-        if prime_count % 2 == 0:
+    a = [1 for x in range(sorted(nums)[-1] + 1)]
+    a[0], a[1] = 0, 0
+    for i in range(2, len(a)):
+        rm_multiples(a, i)
+
+    for i in nums:
+        if sum(a[0:i + 1]) % 2 == 0:
             ben += 1
         else:
             maria += 1
-
+    if ben > maria:
+        return "Ben"
     if maria > ben:
         return "Maria"
-    elif ben > maria:
-        return "Ben"
-    else:
-        return None
+    return None
 
 
-print("Winner: {}".format(isWinner(5, [2, 5, 1, 4, 3])))
+def rm_multiples(ls, x):
+    """removes multiple
+    of primes
+    """
+    for i in range(2, len(ls)):
+        try:
+            ls[i * x] = 0
+        except (ValueError, IndexError):
+            break
